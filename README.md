@@ -59,7 +59,7 @@ price_5y : 거래 시점 기준 약 5년 후의 평균 실거래가
   - 국토교통부 아파트 실거래 공공데이터 API
   - 응답 포맷: XML
 
-- **사용 기술**
+- ** 서버, 모델 사용 기술**
 
   - Python
   - requests
@@ -120,4 +120,20 @@ price_5y : 거래 시점 기준 약 5년 후의 평균 실거래가
   - REST API (JSON)
 
 - **모델 서빙**
+
   - joblib 로드 후 실시간 예측 처리
+
+## 실행
+
+### 프론트
+
+```
+cd frontend
+pnpm run dev
+```
+
+### 서버
+
+```
+python real-estate-forecast/server/app.py
+```
