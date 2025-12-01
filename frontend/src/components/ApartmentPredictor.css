@@ -253,6 +253,61 @@
   color: rgb(100, 116, 139);
 }
 
+/* Select Bucket Styles */
+.select-bucket-container {
+  margin: 1rem 0;
+  width: 100%;
+}
+
+.select-bucket-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.select-bucket {
+  width: 100%;
+  padding: 0.875rem 3rem 0.875rem 1.25rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  color: white;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  transition: all 0.2s;
+  outline: none;
+  box-sizing: border-box;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select-bucket:focus {
+  border-color: rgb(59, 130, 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select-bucket option {
+  background: rgb(30, 41, 59);
+  color: white;
+  padding: 0.5rem;
+}
+
+.select-bucket-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.25rem;
+  height: 1.25rem;
+  color: rgb(100, 116, 139);
+  pointer-events: none;
+}
+
+.select-bucket-label {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(148, 163, 184);
+  text-align: center;
+}
+
 .search-results-wrapper {
   width: 100%;
   max-width: 500px;

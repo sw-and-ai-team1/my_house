@@ -34,8 +34,8 @@ const transformHistoryData = (
   );
 
   // 실제 데이터를 날짜별로 그룹화하여 평균값 계산
-  const dataByYear = new Map<string, { prices: number[], dates: string[] }>();
-  
+  const dataByYear = new Map<string, { prices: number[]; dates: string[] }>();
+
   mainLine.points.forEach((point) => {
     const year = point.date.split("-")[0];
     if (!dataByYear.has(year)) {
@@ -47,12 +47,13 @@ const transformHistoryData = (
 
   // 연도별 평균 가격 계산
   const actualData: ChartDataPoint[] = [];
-  
+
   for (const [year, data] of dataByYear.entries()) {
-    const avgPrice = data.prices.reduce((sum, price) => sum + price, 0) / data.prices.length;
+    const avgPrice =
+      data.prices.reduce((sum, price) => sum + price, 0) / data.prices.length;
     // 가장 최근 날짜 선택
     const latestDate = data.dates.sort().pop() || `${year}-12-31`;
-    
+
     actualData.push({
       date: latestDate,
       year: year,
@@ -64,7 +65,9 @@ const transformHistoryData = (
 
   // 예측 데이터 추가
   if (historyData.prediction) {
-    const latestYear = Math.max(...Array.from(dataByYear.keys()).map(y => parseInt(y)));
+    const latestYear = Math.max(
+      ...Array.from(dataByYear.keys()).map((y) => parseInt(y))
+    );
     const futureYear = latestYear + 5;
 
     actualData.push({
@@ -81,25 +84,33 @@ const transformHistoryData = (
   );
 };
 
-export function PriceChart({ apartmentName }: { apartmentName: string }) {
+export function PriceChart({ 
+  apartmentName, 
+  areaBucket 
+}: { 
+  apartmentName: string;
+  areaBucket?: string;
+}) {
   // TanStack Query를 사용한 API 호출
   const {
     data: historyResponse,
     isLoading,
     error: queryError,
-  } = usePriceHistory(apartmentName, 5);
+  } = usePriceHistory(apartmentName, 5, areaBucket);
 
   // 에러 처리
-  const error = queryError && isErrorResponse(queryError) 
-    ? "가격 데이터를 불러올 수 없습니다."
-    : queryError 
-    ? "네트워크 오류가 발생했습니다."
-    : null;
+  const error =
+    queryError && isErrorResponse(queryError)
+      ? "가격 데이터를 불러올 수 없습니다."
+      : queryError
+      ? "네트워크 오류가 발생했습니다."
+      : null;
 
   // 성공적인 히스토리 데이터가 있고 에러가 아닌 경우
-  const historyData = historyResponse && !isErrorResponse(historyResponse) 
-    ? historyResponse 
-    : null;
+  const historyData =
+    historyResponse && !isErrorResponse(historyResponse)
+      ? historyResponse
+      : null;
 
   const data = historyData ? transformHistoryData(historyData) : [];
 
@@ -183,10 +194,14 @@ export function PriceChart({ apartmentName }: { apartmentName: string }) {
             <Tooltip
               formatter={(value, name) => {
                 if (typeof value === "number") {
-                  const displayValue = value > 10000 
-                    ? `${(value / 10000).toFixed(1)}억원`
-                    : `${value.toLocaleString()}만원`;
-                  return [displayValue, name === "actualPrice" ? "실제 가격" : "예측 가격"];
+                  const displayValue =
+                    value > 10000
+                      ? `${(value / 10000).toFixed(1)}억원`
+                      : `${value.toLocaleString()}만원`;
+                  return [
+                    displayValue,
+                    name === "actualPrice" ? "실제 가격" : "예측 가격",
+                  ];
                 }
                 return ["-", name];
               }}

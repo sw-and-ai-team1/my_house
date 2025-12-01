@@ -96,6 +96,43 @@ def search_apartments():
         return jsonify({"error": "server_error", "message": str(e)}), 500
 
 
+@app.route("/get-area-buckets", methods=["POST"])
+def get_area_buckets():
+    """
+    요청 JSON:
+    {
+      "aptNm": "아파트이름"
+    }
+    
+    응답:
+    {
+      "area_buckets": [10.0, 55.0, 80.0, ...] // 해당 아파트에 있는 평형들
+    }
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or "aptNm" not in data:
+            return jsonify({"error": "aptNm is required"}), 400
+        
+        apt_name_query = data["aptNm"].strip()
+        
+        # 해당 아파트의 거래 데이터 필터링
+        apt_deals = deals_df[deals_df["aptNm"].str.contains(apt_name_query, na=False)]
+        
+        if apt_deals.empty:
+            return jsonify({"error": "apartment_not_found"}), 404
+        
+        # 해당 아파트의 평형 구간들 추출 (중복 제거, 정렬)
+        area_buckets = sorted(apt_deals["area_bucket"].unique().tolist())
+        
+        return jsonify({"area_buckets": area_buckets}), 200
+    
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": "server_error", "message": str(e)}), 500
+
+
 @app.route("/predict-price", methods=["POST"])
 def predict_price():
     try:
@@ -105,12 +142,26 @@ def predict_price():
             return jsonify({"error": "aptNm is required"}), 400
 
         apt_name_query = data["aptNm"].strip()
+        area_bucket_filter = data.get("area_bucket")  # 평형 필터 추가
 
         # 3. 아파트 이름으로 검색
         cand = deals_df[deals_df["aptNm"].str.contains(apt_name_query, na=False)]
 
         if cand.empty:
             return jsonify({"error": "apartment_not_found"}), 404
+
+        # 평형 필터가 있으면 적용
+        if area_bucket_filter:
+            target_area_bucket = float(area_bucket_filter)
+            # 해당 평형 구간의 거래만 필터링
+            area_filtered = cand[cand["area_bucket"] == target_area_bucket]
+            if not area_filtered.empty:
+                cand = area_filtered
+            else:
+                return jsonify({
+                    "error": "no_deals_in_area", 
+                    "message": f"해당 아파트의 {target_area_bucket}평형 거래 데이터가 없습니다."
+                }), 404
 
         # 4. 가장 최근 거래 1건 선택
         latest = cand.sort_values("dealDate").iloc[-1]
@@ -179,6 +230,7 @@ def price_history():
 
         apt_name_query = data["aptNm"].strip()
         years = int(data.get("years", 5))
+        area_bucket_filter = data.get("area_bucket")  # 평형 필터 추가
 
         # 1. 아파트 이름으로 후보 찾기
         cand = deals_df[deals_df["aptNm"].str.contains(apt_name_query, na=False)]
@@ -190,6 +242,11 @@ def price_history():
         top_apt = cand["aptNm"].value_counts().idxmax()
 
         apt_deals = deals_df[deals_df["aptNm"] == top_apt].copy()
+
+        # 평형 필터가 있으면 적용
+        if area_bucket_filter:
+            target_area_bucket = float(area_bucket_filter)
+            apt_deals = apt_deals[apt_deals["area_bucket"] == target_area_bucket]
 
         # 3. 최근 N년으로 필터
         now = pd.Timestamp.now()
